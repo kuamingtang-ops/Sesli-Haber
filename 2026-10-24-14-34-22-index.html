@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sesli Haber Bülteni</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:16px;background:#080d18;color:#f5f7fc;font-family:Arial,sans-serif}
+.panel{max-width:680px;margin:20px auto;background:#101827;border:1px solid #293650;border-radius:18px;overflow:hidden}
+.header{padding:22px}.brand{color:#ffc629;font-weight:bold;letter-spacing:1px}
+h1{font-size:25px;line-height:1.25}.cover{min-height:210px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#253c5b,#111827 65%,#761c25)}
+.live{color:#ff5252;font-weight:bold}.cover strong{font-size:25px}.controls{padding:20px}
+button,select{border:1px solid #35445e;background:#1c2940;color:white;padding:13px;border-radius:10px;font-size:15px}
+button{cursor:pointer}.play{background:#d71930;border:0}.buttons{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}
+input[type=range]{width:100%;accent-color:#ffc629}label{display:block;color:#c2cde0;margin-top:17px}
+.row{display:flex;gap:10px;align-items:center}.row select{flex:1;min-width:0}small{color:#aebbd0}
+.note{padding:12px;background:#1b2638;border-radius:10px;color:#cbd5e1;font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="panel" id="player">
+  <div class="header">
+    <div class="brand">📺 SESLİ HABER</div>
+    <h1 id="headline">ÖZEL HABER BÜLTENİ</h1>
+    <small>🎙️ Sesli yayın • Özel haber</small>
+  </div>
+  <div class="cover">
+    <div class="live">● ÖZEL YAYIN</div>
+    <strong id="coverTitle">Günün önemli gelişmeleri</strong>
+    <small>HABER BÜLTENİ • SESLİ ANLATIM</small>
+  </div>
+  <div class="controls">
+    <audio id="audio" preload="metadata">
+      <source src="ses.mp3" type="audio/mpeg">
+    </audio>
+    <div class="note">Kendi ses dosyanı dinlemek için bu klasöre <b>ses.mp3</b> adıyla yükle.</div>
+    <label for="seek">İLERİ / GERİ SAR</label>
+    <input id="seek" type="range" min="0" max="100" value="0">
+    <div class="row"><small id="current">00:00</small><span style="flex:1"></span><small id="duration">00:00</small></div>
+    <div class="buttons">
+      <button class="play" id="toggle">▶ Dinlet</button>
+      <button id="back">⏪ −10 sn</button>
+      <button id="forward">⏩ +10 sn</button>
+      <button id="restart">⏮ Başa sar</button>
+    </div>
+    <label for="volume">🔊 Ses seviyesi</label>
+    <input id="volume" type="range" min="0" max="1" step="0.05" value="1">
+    <label for="speed">Oynatma hızı</label>
+    <div class="row">
+      <select id="speed">
+        <option value="0.75">0.75x — Yavaş</option>
+        <option value="1" selected>1.0x — Normal</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2.0x — Hızlı</option>
+      </select>
+      <button id="fullscreen">⛶ Tam ekran</button>
+    </div>
+    <p><small>Sesli haber yayını</small></p>
+  </div>
+</div>
+<script>
+const audio=document.getElementById('audio'),toggle=document.getElementById('toggle'),seek=document.getElementById('seek');
+function timeText(n){if(!Number.isFinite(n))return'00:00';return String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0')}
+toggle.onclick=async()=>{if(audio.paused){try{await audio.play()}catch(e){alert('Ses dosyası bulunamadı. Depoya ses.mp3 dosyasını yüklediğinden emin ol.')}}else audio.pause()};
+audio.onplay=()=>toggle.textContent='⏸ Duraklat';audio.onpause=()=>toggle.textContent='▶ Dinlet';
+document.getElementById('back').onclick=()=>audio.currentTime=Math.max(0,audio.currentTime-10);
+document.getElementById('forward').onclick=()=>audio.currentTime=Math.min(audio.duration||audio.currentTime+10,audio.currentTime+10);
+document.getElementById('restart').onclick=()=>{audio.currentTime=0;audio.play()};
+document.getElementById('volume').oninput=e=>audio.volume=Number(e.target.value);
+document.getElementById('speed').onchange=e=>audio.playbackRate=Number(e.target.value);
+audio.ontimeupdate=()=>{document.getElementById('current').textContent=timeText(audio.currentTime);if(Number.isFinite(audio.duration)){seek.value=audio.currentTime/audio.duration*100;document.getElementById('duration').textContent=timeText(audio.duration)}};
+seek.oninput=()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number(seek.value)/100*audio.duration};
+document.getElementById('fullscreen').onclick=async()=>{const p=document.getElementById('player');try{if(!document.fullscreenElement)await p.requestFullscreen();else await document.exitFullscreen()}catch(e){alert('Tam ekran bu tarayıcıda desteklenmiyor.')}};
+</script>
+</body>
+</html>
